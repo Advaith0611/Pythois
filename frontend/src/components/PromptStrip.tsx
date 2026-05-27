@@ -1,29 +1,31 @@
 import { RefreshCw, WandSparkles } from 'lucide-react'
+import { memo, useCallback } from 'react'
 import type { Editor } from 'tldraw'
 import { generateInterface } from '../ai/api'
 import { getSerializableShapes } from '../canvas/shapes'
 import { useAppStore } from '../store/useAppStore'
+import { useRenderCounter } from '../canvas/performanceInstrumentation'
 
 interface PromptStripProps {
   editor: Editor
 }
 
-export function PromptStrip({ editor }: PromptStripProps) {
-  const {
-    prompt,
-    selectedOnly,
-    isGenerating,
-    setPrompt,
-    setSelectedOnly,
-    setGeneratedUI,
-    setIsGenerating,
-    setLastShapes,
-    setStatus,
-  } = useAppStore()
+function PromptStripComponent({ editor }: PromptStripProps) {
+  useRenderCounter('PromptStrip')
 
-  const regenerate = async () => {
+  const prompt = useAppStore((state) => state.prompt)
+  const selectedOnly = useAppStore((state) => state.selectedOnly)
+  const isGenerating = useAppStore((state) => state.isGenerating)
+  const setPrompt = useAppStore((state) => state.setPrompt)
+  const setSelectedOnly = useAppStore((state) => state.setSelectedOnly)
+  const setGeneratedUI = useAppStore((state) => state.setGeneratedUI)
+  const setIsGenerating = useAppStore((state) => state.setIsGenerating)
+  const setLastShapeCount = useAppStore((state) => state.setLastShapeCount)
+  const setStatus = useAppStore((state) => state.setStatus)
+
+  const regenerate = useCallback(async () => {
     const shapes = getSerializableShapes(editor, selectedOnly)
-    setLastShapes(shapes)
+    setLastShapeCount(shapes.length)
     setIsGenerating(true)
     setStatus(selectedOnly ? 'Regenerating selected region' : 'Regenerating full canvas')
     try {
@@ -32,7 +34,7 @@ export function PromptStrip({ editor }: PromptStripProps) {
     } finally {
       setIsGenerating(false)
     }
-  }
+  }, [editor, prompt, selectedOnly, setGeneratedUI, setIsGenerating, setLastShapeCount, setStatus])
 
   return (
     <form
@@ -64,3 +66,5 @@ export function PromptStrip({ editor }: PromptStripProps) {
     </form>
   )
 }
+
+export const PromptStrip = memo(PromptStripComponent)

@@ -1,5 +1,6 @@
 import { ArrowRight, CheckCircle2, Columns3, Gauge, ListChecks, Table2, TrendingUp } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { useRenderCounter } from '../canvas/performanceInstrumentation'
 import { useAppStore } from '../store/useAppStore'
 import type { GeneratedComponent } from '../types'
 
@@ -146,7 +147,11 @@ function ComponentPanel({ component, index }: { component: GeneratedComponent; i
 }
 
 export function GeneratedRenderer() {
-  const { generatedUI, lastShapes, status } = useAppStore()
+  useRenderCounter('GeneratedRenderer')
+
+  const generatedUI = useAppStore((state) => state.generatedUI)
+  const lastShapeCount = useAppStore((state) => state.lastShapeCount)
+  const status = useAppStore((state) => state.status)
 
   return (
     <aside className="generated-panel">
@@ -162,7 +167,7 @@ export function GeneratedRenderer() {
       </p>
       <div className="panel-meta">
         <span>{status}</span>
-        <span>{lastShapes.length} shapes</span>
+        <span>{lastShapeCount} shapes</span>
       </div>
       <motion.div className="preview-grid" layout>
         {(generatedUI?.components ?? []).map((component, index) => (

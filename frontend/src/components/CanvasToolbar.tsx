@@ -1,32 +1,34 @@
 import { Bot, Braces, CircleDot, Eraser, MousePointer2, PenLine, Sparkles, Square, Type } from 'lucide-react'
+import { memo, useCallback } from 'react'
 import type { Editor } from 'tldraw'
 import toast from 'react-hot-toast'
 import { generateInterface } from '../ai/api'
 import { getSerializableShapes } from '../canvas/shapes'
 import { useAppStore } from '../store/useAppStore'
+import { useRenderCounter } from '../canvas/performanceInstrumentation'
 
 interface CanvasToolbarProps {
   editor: Editor
 }
 
-export function CanvasToolbar({ editor }: CanvasToolbarProps) {
-  const {
-    prompt,
-    selectedOnly,
-    isGenerating,
-    setGeneratedUI,
-    setIsGenerating,
-    setLastShapes,
-    setStatus,
-  } = useAppStore()
+function CanvasToolbarComponent({ editor }: CanvasToolbarProps) {
+  useRenderCounter('CanvasToolbar')
 
-  const setTool = (tool: string) => {
+  const prompt = useAppStore((state) => state.prompt)
+  const selectedOnly = useAppStore((state) => state.selectedOnly)
+  const isGenerating = useAppStore((state) => state.isGenerating)
+  const setGeneratedUI = useAppStore((state) => state.setGeneratedUI)
+  const setIsGenerating = useAppStore((state) => state.setIsGenerating)
+  const setLastShapeCount = useAppStore((state) => state.setLastShapeCount)
+  const setStatus = useAppStore((state) => state.setStatus)
+
+  const setTool = useCallback((tool: string) => {
     editor.setCurrentTool(tool)
-  }
+  }, [editor])
 
-  const generate = async () => {
+  const generate = useCallback(async () => {
     const shapes = getSerializableShapes(editor, selectedOnly)
-    setLastShapes(shapes)
+    setLastShapeCount(shapes.length)
     setIsGenerating(true)
     setStatus(shapes.length ? `Parsing ${shapes.length} canvas objects` : 'Generating starter interface')
 
@@ -42,7 +44,7 @@ export function CanvasToolbar({ editor }: CanvasToolbarProps) {
     } finally {
       setIsGenerating(false)
     }
-  }
+  }, [editor, prompt, selectedOnly, setGeneratedUI, setIsGenerating, setLastShapeCount, setStatus])
 
   return (
     <div className="canvas-toolbar" aria-label="Spatial tools">
@@ -76,3 +78,5 @@ export function CanvasToolbar({ editor }: CanvasToolbarProps) {
     </div>
   )
 }
+
+export const CanvasToolbar = memo(CanvasToolbarComponent)

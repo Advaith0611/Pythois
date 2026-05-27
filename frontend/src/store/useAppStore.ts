@@ -1,17 +1,17 @@
 import { create } from 'zustand'
-import type { GeneratedUI, SpatialShape } from '../types'
+import type { GeneratedUI } from '../types'
 
 interface AppState {
   generatedUI: GeneratedUI | null
   prompt: string
   selectedOnly: boolean
-  lastShapes: SpatialShape[]
+  lastShapeCount: number
   isGenerating: boolean
   status: string
   setGeneratedUI: (ui: GeneratedUI | null) => void
   setPrompt: (prompt: string) => void
   setSelectedOnly: (selectedOnly: boolean) => void
-  setLastShapes: (shapes: SpatialShape[]) => void
+  setLastShapeCount: (count: number) => void
   setIsGenerating: (isGenerating: boolean) => void
   setStatus: (status: string) => void
 }
@@ -20,13 +20,13 @@ export const useAppStore = create<AppState>((set) => ({
   generatedUI: null,
   prompt: '',
   selectedOnly: false,
-  lastShapes: [],
+  lastShapeCount: 0,
   isGenerating: false,
   status: 'Ready',
   setGeneratedUI: (generatedUI) => set({ generatedUI }),
   setPrompt: (prompt) => set({ prompt }),
   setSelectedOnly: (selectedOnly) => set({ selectedOnly }),
-  setLastShapes: (lastShapes) => set({ lastShapes }),
+  setLastShapeCount: (lastShapeCount) => set({ lastShapeCount }),
   setIsGenerating: (isGenerating) => set({ isGenerating }),
   setStatus: (status) => set({ status }),
 }))
