@@ -41,6 +41,7 @@ function CanvasWorkspaceComponent() {
           className="pythios-tldraw"
           autoFocus
           hideUi
+          licenseKey={import.meta.env.VITE_TLDRAW_LICENSE_KEY}
           onMount={handleMount}
         />
       </div>
