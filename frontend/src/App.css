@@ -288,9 +288,10 @@
 .toolbar-brand {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 34px;
+  justify-content: flex-start;
+  gap: 8px;
   height: 34px;
+  padding: 0 8px 0 2px;
   overflow: hidden;
 }
 
@@ -299,6 +300,12 @@
   max-width: 28px;
   max-height: 28px;
   object-fit: contain;
+}
+
+.toolbar-brand span {
+  color: #edf4ff;
+  font-size: 14px;
+  font-weight: 800;
 }
 
 .canvas-toolbar button,

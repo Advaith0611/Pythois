@@ -153,6 +153,7 @@ function CanvasToolbarComponent({ editor }: CanvasToolbarProps) {
     <div className="canvas-toolbar" aria-label="Spatial tools">
       <div className="toolbar-brand">
         <img src="/logo.png" alt="Pythios" />
+        <span>Pythios</span>
       </div>
       <span className="toolbar-divider" />
       <button type="button" onClick={() => setTool('select')} title="Select">
