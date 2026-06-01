@@ -47,6 +47,23 @@ export interface GeneratedUI {
   components: GeneratedComponent[]
 }
 
+export type EmbeddedCanvasObjectKind = 'image' | 'pdf' | 'file' | 'webpage'
+
+export interface EmbeddedCanvasObject {
+  id: string
+  kind: EmbeddedCanvasObjectKind
+  x: number
+  y: number
+  w: number
+  h: number
+  title: string
+  mimeType?: string
+  size?: number
+  dataUrl?: string
+  url?: string
+  createdAt: string
+}
+
 export interface GenerationRequest {
   shapes: SpatialShape[]
   prompt?: string

@@ -1,4 +1,4 @@
-import { ArrowRight, CheckCircle2, Columns3, Gauge, ListChecks, Table2, TrendingUp } from 'lucide-react'
+import { ArrowRight, CheckCircle2, ChevronLeft, ChevronRight, Columns3, Gauge, ListChecks, Table2, TrendingUp } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useRenderCounter } from '../canvas/performanceInstrumentation'
 import { useAppStore } from '../store/useAppStore'
@@ -152,9 +152,21 @@ export function GeneratedRenderer() {
   const generatedUI = useAppStore((state) => state.generatedUI)
   const lastShapeCount = useAppStore((state) => state.lastShapeCount)
   const status = useAppStore((state) => state.status)
+  const isSidebarCollapsed = useAppStore((state) => state.isSidebarCollapsed)
+  const setSidebarCollapsed = useAppStore((state) => state.setSidebarCollapsed)
 
   return (
-    <aside className="generated-panel">
+    <aside className="generated-panel" aria-label="Generated interface preview">
+      <button
+        type="button"
+        className="sidebar-toggle"
+        title={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        aria-label={isSidebarCollapsed ? 'Expand generated preview sidebar' : 'Collapse generated preview sidebar'}
+        aria-expanded={!isSidebarCollapsed}
+        onClick={() => setSidebarCollapsed(!isSidebarCollapsed)}
+      >
+        {isSidebarCollapsed ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
+      </button>
       <div className="panel-header">
         <div>
           <span>Live generated interface</span>

@@ -3,6 +3,7 @@ import { Tldraw, type Editor } from 'tldraw'
 import { CanvasHints } from '../components/CanvasHints'
 import { CanvasToolbar } from '../components/CanvasToolbar'
 import { PromptStrip } from '../components/PromptStrip'
+import { EmbeddedCanvasLayer } from './EmbeddedCanvasLayer'
 import {
   useBoundEditorHistory,
   useDisableTldrawPersistenceCleanup,
@@ -47,6 +48,7 @@ function CanvasWorkspaceComponent() {
       </div>
       {editor ? (
         <div className="canvas-overlays">
+          <EmbeddedCanvasLayer editor={editor} />
           <CanvasToolbar editor={editor} />
           <PromptStrip editor={editor} />
           <CanvasHints />

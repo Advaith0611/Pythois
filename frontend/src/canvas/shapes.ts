@@ -1,4 +1,5 @@
 import { renderPlaintextFromRichText, type Editor, type TLShape, type TLRichText } from 'tldraw'
+import { useAppStore } from '../store/useAppStore'
 import type { SpatialShape } from '../types'
 
 function propString(props: Record<string, unknown>, key: string) {
@@ -40,8 +41,23 @@ export function serializeShape(editor: Editor, shape: TLShape): SpatialShape {
 
 export function getSerializableShapes(editor: Editor, selectedOnly: boolean): SpatialShape[] {
   const selectedIds = new Set(editor.getSelectedShapeIds())
-  return editor
+  const { embeddedObjects, selectedEmbeddedObjectId } = useAppStore.getState()
+  const tldrawShapes = editor
     .getCurrentPageShapes()
     .filter((shape) => !selectedOnly || selectedIds.has(shape.id))
     .map((shape) => serializeShape(editor, shape))
+  const embeddedShapes = embeddedObjects
+    .filter((object) => !selectedOnly || selectedEmbeddedObjectId === object.id)
+    .map((object) => ({
+      id: object.id,
+      type: `embed:${object.kind}`,
+      x: object.x,
+      y: object.y,
+      w: object.w,
+      h: object.h,
+      text: object.url ?? object.title,
+      geo: object.mimeType,
+    }))
+
+  return [...tldrawShapes, ...embeddedShapes]
 }
