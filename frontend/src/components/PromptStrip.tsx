@@ -1,8 +1,6 @@
-import { RefreshCw, WandSparkles } from 'lucide-react'
-import { memo, useCallback } from 'react'
+import { WandSparkles } from 'lucide-react'
+import { memo } from 'react'
 import type { Editor } from 'tldraw'
-import { generateInterface } from '../ai/api'
-import { getSerializableShapes } from '../canvas/shapes'
 import { useAppStore } from '../store/useAppStore'
 import { useRenderCounter } from '../canvas/performanceInstrumentation'
 
@@ -11,38 +9,17 @@ interface PromptStripProps {
 }
 
 function PromptStripComponent({ editor }: PromptStripProps) {
+  void editor
   useRenderCounter('PromptStrip')
 
   const prompt = useAppStore((state) => state.prompt)
   const selectedOnly = useAppStore((state) => state.selectedOnly)
-  const isGenerating = useAppStore((state) => state.isGenerating)
   const setPrompt = useAppStore((state) => state.setPrompt)
   const setSelectedOnly = useAppStore((state) => state.setSelectedOnly)
-  const setGeneratedUI = useAppStore((state) => state.setGeneratedUI)
-  const setIsGenerating = useAppStore((state) => state.setIsGenerating)
-  const setLastShapeCount = useAppStore((state) => state.setLastShapeCount)
-  const setStatus = useAppStore((state) => state.setStatus)
-
-  const regenerate = useCallback(async () => {
-    const shapes = getSerializableShapes(editor, selectedOnly)
-    setLastShapeCount(shapes.length)
-    setIsGenerating(true)
-    setStatus(selectedOnly ? 'Regenerating selected region' : 'Regenerating full canvas')
-    try {
-      setGeneratedUI(await generateInterface({ shapes, prompt, selectedOnly }))
-      setStatus('Preview updated')
-    } finally {
-      setIsGenerating(false)
-    }
-  }, [editor, prompt, selectedOnly, setGeneratedUI, setIsGenerating, setLastShapeCount, setStatus])
 
   return (
-    <form
+    <div
       className="prompt-strip"
-      onSubmit={(event) => {
-        event.preventDefault()
-        void regenerate()
-      }}
     >
       <WandSparkles size={18} />
       <input
@@ -59,11 +36,7 @@ function PromptStripComponent({ editor }: PromptStripProps) {
         />
         <span>Selected</span>
       </label>
-      <button type="submit" disabled={isGenerating}>
-        <RefreshCw size={16} />
-        <span>Update</span>
-      </button>
-    </form>
+    </div>
   )
 }
 

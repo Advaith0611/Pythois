@@ -2,6 +2,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from app.models.canvas_protocol import CanvasActionBatch, CanvasState, CanvasVisualContext
+
 
 class SpatialShape(BaseModel):
     id: str
@@ -17,6 +19,8 @@ class SpatialShape(BaseModel):
 
 class GenerateRequest(BaseModel):
     shapes: list[SpatialShape] = Field(default_factory=list)
+    canvasState: CanvasState | None = None
+    visualContext: CanvasVisualContext | None = None
     prompt: str | None = None
     selectedOnly: bool = False
 
@@ -55,6 +59,12 @@ class GeneratedUI(BaseModel):
     generated_at: str
     source: Literal["backend", "local"] = "backend"
     components: list[GeneratedComponent]
+
+
+class GenerateResponse(BaseModel):
+    actionBatch: CanvasActionBatch = Field(default_factory=CanvasActionBatch)
+    generatedUI: GeneratedUI | None = None
+    source: Literal["ai-core"] = "ai-core"
 
 
 class HealthResponse(BaseModel):

@@ -1,7 +1,8 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter
 
-from app.models.schemas import GenerateRequest, GeneratedUI, HealthResponse
-from app.pipelines.orchestrator import generate_interface
+from app.models.canvas_protocol import CanvasActionBatch, CanvasProtocolResponse
+from app.models.schemas import GenerateRequest, GenerateResponse, HealthResponse
+from app.pipelines.ai_core_runner import run_ai_core
 
 router = APIRouter()
 
@@ -11,19 +12,16 @@ async def health():
     return HealthResponse(status="ok", ai="local-ready")
 
 
-@router.post("/generate", response_model=GeneratedUI)
+@router.post("/generate", response_model=GenerateResponse, response_model_exclude_none=True)
 async def generate(request: GenerateRequest):
-    return generate_interface(request)
+    return run_ai_core(request)
 
 
-@router.websocket("/ws/generate")
-async def generate_ws(websocket: WebSocket):
-    await websocket.accept()
-    try:
-        while True:
-            payload = await websocket.receive_json()
-            request = GenerateRequest.model_validate(payload)
-            result = generate_interface(request)
-            await websocket.send_json(result.model_dump())
-    except WebSocketDisconnect:
-        return
+@router.get("/canvas/protocol", response_model=CanvasProtocolResponse)
+async def canvas_protocol():
+    return CanvasProtocolResponse()
+
+
+@router.post("/canvas/actions/validate", response_model=CanvasActionBatch, response_model_exclude_none=True)
+async def validate_canvas_actions(request: CanvasActionBatch):
+    return request

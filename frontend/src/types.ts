@@ -1,3 +1,5 @@
+import type { CanvasActionBatch, CanvasState, CanvasVisualContext } from './ai/canvasProtocol'
+
 export type ComponentType =
   | 'metric'
   | 'chart'
@@ -62,10 +64,19 @@ export interface EmbeddedCanvasObject {
   dataUrl?: string
   url?: string
   createdAt: string
+  metadata?: Record<string, unknown>
 }
 
 export interface GenerationRequest {
   shapes: SpatialShape[]
+  canvasState?: CanvasState
+  visualContext?: CanvasVisualContext
   prompt?: string
   selectedOnly?: boolean
+}
+
+export interface GenerationResponse {
+  actionBatch: CanvasActionBatch
+  generatedUI?: GeneratedUI | null
+  source: 'ai-core'
 }

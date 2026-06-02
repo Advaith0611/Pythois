@@ -3,7 +3,9 @@ import { memo, useCallback, useRef, useState } from 'react'
 import type { Editor } from 'tldraw'
 import toast from 'react-hot-toast'
 import { generateInterface } from '../ai/api'
+import { applyCanvasActions, getCanvasState } from '../canvas/aiCanvasBridge'
 import { getSerializableShapes } from '../canvas/shapes'
+import { captureCanvasVisualContext } from '../canvas/visualContext'
 import { useAppStore } from '../store/useAppStore'
 import { useRenderCounter } from '../canvas/performanceInstrumentation'
 import type { EmbeddedCanvasObject, EmbeddedCanvasObjectKind } from '../types'
@@ -131,15 +133,24 @@ function CanvasToolbarComponent({ editor }: CanvasToolbarProps) {
 
   const generate = useCallback(async () => {
     const shapes = getSerializableShapes(editor, selectedOnly)
+    const canvasState = getCanvasState(editor)
     setLastShapeCount(shapes.length)
     setIsGenerating(true)
     setStatus(shapes.length ? `Parsing ${shapes.length} canvas objects` : 'Generating starter interface')
 
     try {
-      const ui = await generateInterface({ shapes, prompt, selectedOnly })
-      setGeneratedUI(ui)
-      setStatus(ui.source === 'backend' ? 'Generated through backend' : 'Generated locally')
-      toast.success(ui.source === 'backend' ? 'Interface generated' : 'Generated locally')
+      const visualContext = await captureCanvasVisualContext(editor)
+      const response = await generateInterface({ shapes, canvasState, visualContext, prompt, selectedOnly })
+      const actions = response.actionBatch.actions
+      const result = applyCanvasActions(editor, actions)
+      const appliedCount = result.results.filter((actionResult) => actionResult.ok).length
+
+      if (response.generatedUI) {
+        setGeneratedUI(response.generatedUI)
+      }
+
+      setStatus(`AI Core ran: ${appliedCount}/${actions.length} action${actions.length === 1 ? '' : 's'} applied`)
+      toast.success(actions.length ? 'AI Core actions applied' : 'AI Core ran')
     } catch (error) {
       console.error(error)
       setStatus('Generation failed')
