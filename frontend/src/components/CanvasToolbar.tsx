@@ -1,4 +1,12 @@
-import { Bot, Braces, CircleDot, Eraser, FileUp, Globe2, ImagePlus, MousePointer2, PenLine, Sparkles, Square, Type, X } from 'lucide-react'
+import {
+  Bot,
+  Braces,
+  FileUp,
+  Globe2,
+  ImagePlus,
+  Sparkles,
+  X,
+} from 'lucide-react'
 import { memo, useCallback, useRef, useState } from 'react'
 import type { Editor } from 'tldraw'
 import toast from 'react-hot-toast'
@@ -45,6 +53,10 @@ function normalizeUrl(value: string) {
   }
 }
 
+function errorMessage(error: unknown) {
+  return error instanceof Error ? error.message : String(error)
+}
+
 function CanvasToolbarComponent({ editor }: CanvasToolbarProps) {
   useRenderCounter('CanvasToolbar')
 
@@ -60,10 +72,6 @@ function CanvasToolbarComponent({ editor }: CanvasToolbarProps) {
   const setIsGenerating = useAppStore((state) => state.setIsGenerating)
   const setLastShapeCount = useAppStore((state) => state.setLastShapeCount)
   const setStatus = useAppStore((state) => state.setStatus)
-
-  const setTool = useCallback((tool: string) => {
-    editor.setCurrentTool(tool)
-  }, [editor])
 
   const getDropPoint = useCallback(() => {
     const center = editor.screenToPage(editor.getViewportScreenCenter())
@@ -153,8 +161,9 @@ function CanvasToolbarComponent({ editor }: CanvasToolbarProps) {
       toast.success(actions.length ? 'AI Core actions applied' : 'AI Core ran')
     } catch (error) {
       console.error(error)
-      setStatus('Generation failed')
-      toast.error('Generation failed')
+      const message = errorMessage(error)
+      setStatus(`Generation failed: ${message}`)
+      toast.error(`Generation failed: ${message}`)
     } finally {
       setIsGenerating(false)
     }
@@ -166,25 +175,6 @@ function CanvasToolbarComponent({ editor }: CanvasToolbarProps) {
         <img src="/logo.png" alt="Pythios" />
         <span>Pythios</span>
       </div>
-      <span className="toolbar-divider" />
-      <button type="button" onClick={() => setTool('select')} title="Select">
-        <MousePointer2 size={18} />
-      </button>
-      <button type="button" onClick={() => setTool('draw')} title="Draw">
-        <PenLine size={18} />
-      </button>
-      <button type="button" onClick={() => setTool('geo')} title="Shape">
-        <Square size={18} />
-      </button>
-      <button type="button" onClick={() => setTool('text')} title="Text">
-        <Type size={18} />
-      </button>
-      <button type="button" onClick={() => setTool('arrow')} title="Arrow">
-        <CircleDot size={18} />
-      </button>
-      <button type="button" onClick={() => setTool('eraser')} title="Erase">
-        <Eraser size={18} />
-      </button>
       <span className="toolbar-divider" />
       <input
         ref={fileInputRef}

@@ -2,7 +2,6 @@ import { memo, useCallback, useRef, useState } from 'react'
 import { Tldraw, type Editor } from 'tldraw'
 import { CanvasHints } from '../components/CanvasHints'
 import { CanvasToolbar } from '../components/CanvasToolbar'
-import { PromptStrip } from '../components/PromptStrip'
 import { EmbeddedCanvasLayer } from './EmbeddedCanvasLayer'
 import {
   useBoundEditorHistory,
@@ -41,7 +40,6 @@ function CanvasWorkspaceComponent() {
         <Tldraw
           className="pythios-tldraw"
           autoFocus
-          hideUi
           licenseKey={import.meta.env.VITE_TLDRAW_LICENSE_KEY}
           onMount={handleMount}
         />
@@ -50,7 +48,6 @@ function CanvasWorkspaceComponent() {
         <div className="canvas-overlays">
           <EmbeddedCanvasLayer editor={editor} />
           <CanvasToolbar editor={editor} />
-          <PromptStrip editor={editor} />
           <CanvasHints />
         </div>
       ) : null}

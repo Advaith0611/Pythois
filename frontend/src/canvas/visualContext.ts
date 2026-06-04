@@ -81,7 +81,7 @@ function createBlankDataUrl(width: number, height: number) {
   return canvas.toDataURL('image/png')
 }
 
-export async function captureCanvasVisualContext(editor: Editor): Promise<CanvasVisualContext | undefined> {
+export async function captureCanvasVisualContext(editor: Editor): Promise<CanvasVisualContext> {
   const viewportPageBounds = boxToBounds(editor.getViewportPageBounds())
   const screenBounds = editor.getViewportScreenBounds()
   const exportScale = Math.min(1, MAX_VISUAL_WIDTH / screenBounds.w, MAX_VISUAL_HEIGHT / screenBounds.h)
@@ -94,8 +94,10 @@ export async function captureCanvasVisualContext(editor: Editor): Promise<Canvas
     'Webpage embeds are represented by their visible frame metadata because browser security prevents reading cross-origin iframe pixels.',
   ]
 
-  const baseImage = shapeIds.length
-    ? await editor.toImageDataUrl(shapeIds, {
+  let baseImage = { url: createBlankDataUrl(width, height), width, height }
+  if (shapeIds.length) {
+    try {
+      baseImage = await editor.toImageDataUrl(shapeIds, {
         bounds: editor.getViewportPageBounds(),
         background: true,
         format: 'png',
@@ -103,13 +105,27 @@ export async function captureCanvasVisualContext(editor: Editor): Promise<Canvas
         pixelRatio: 1,
         scale: exportScale * editor.getCamera().z,
       })
-    : { url: createBlankDataUrl(width, height), width, height }
+    } catch {
+      notes.push('tldraw bitmap export failed; using a generated visual context fallback.')
+    }
+  }
 
   const canvas = document.createElement('canvas')
   canvas.width = width
   canvas.height = height
   const ctx = canvas.getContext('2d')
-  if (!ctx) return undefined
+  if (!ctx) {
+    return {
+      schemaVersion: 'pythios.canvas.visual.v1',
+      capturedAt: new Date().toISOString(),
+      format: 'image/png',
+      dataUrl: createBlankDataUrl(width, height),
+      width,
+      height,
+      viewportPageBounds,
+      notes: [...notes, 'Browser canvas context was unavailable; using a blank visual context fallback.'],
+    }
+  }
 
   ctx.fillStyle = '#ffffff'
   ctx.fillRect(0, 0, width, height)
