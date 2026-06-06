@@ -282,7 +282,7 @@ def run(
     actions.append(
         create_text(
             x=130,
-            y=1080,
+            y=800,
             width=650,
             text=answer,
         ),
