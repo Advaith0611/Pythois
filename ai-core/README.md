@@ -32,7 +32,7 @@ The canvas is exposed to Python as three structures:
 
 Python AI code reads `CanvasState` and, when needed, `CanvasVisualContext`. It decides what should happen and returns a batch of `CanvasAction` dictionaries. The frontend is the only layer that applies those actions to the live canvas.
 
-The Python helper module is:
+The Python helper modules are:
 
 ```python
 from canvas_protocol import (
@@ -42,6 +42,7 @@ from canvas_protocol import (
     selected_objects,
     webpages,
 )
+from app.services.file_ingestion import process_canvas_file
 ```
 
 This is infrastructure only. It does not implement intelligence.
@@ -172,14 +173,21 @@ def selected_text(state: CanvasState) -> list[str]:
 
 ```python
 from canvas_protocol import CanvasState, files
+from app.services.file_ingestion import process_canvas_file
 
 
-def file_titles(state: CanvasState) -> list[str]:
+def readable_files(state: CanvasState) -> list[dict]:
     return [
-        obj.get("title", obj["id"])
+        {
+            "id": obj["id"],
+            "title": obj.get("title", obj["id"]),
+            "result": process_canvas_file(obj),
+        }
         for obj in files(state)
     ]
 ```
+
+`process_canvas_file(...)` supports `text/plain`, `text/markdown`, `application/pdf`, `application/json`, `text/csv`, DOCX, `image/png`, `image/jpeg`, and `image/webp`. It extracts text from text-like files, PDFs, CSVs, JSON, and DOCX files. It does not OCR images; for image files it reports that image data exists and preserves the original data URL in the ingestion result.
 
 ### Reading Webpage Embeds
 
@@ -267,19 +275,23 @@ Webpage embeds are represented by their visible frame metadata in the generated 
 Use this pattern when you want to read everything currently on the screen/canvas when Generate is clicked.
 
 ```python
+from typing import Any
+
 from canvas_protocol import CanvasState, CanvasVisualContext, files, selected_objects, webpages
+from app.services.file_ingestion import process_canvas_file
 
 
 def read_everything_on_canvas(
     canvas_state: CanvasState,
     visual_context: CanvasVisualContext | None = None,
-) -> dict:
+) -> dict[str, Any]:
     objects = canvas_state.get("objects", [])
     selected = selected_objects(canvas_state)
     file_objects = files(canvas_state)
     webpage_objects = webpages(canvas_state)
     viewport = canvas_state.get("viewport", {})
     metadata = canvas_state.get("metadata", {})
+    processed_files = [_read_canvas_file(obj) for obj in file_objects]
 
     return {
         "captured_at": canvas_state.get("capturedAt"),
@@ -299,6 +311,8 @@ def read_everything_on_canvas(
                 "title": obj.get("title"),
                 "url": obj.get("url"),
                 "mimeType": obj.get("mimeType"),
+                "size": obj.get("size"),
+                "hasDataUrl": bool(obj.get("dataUrl")),
                 "metadata": obj.get("metadata", {}),
             }
             for obj in objects
@@ -318,9 +332,11 @@ def read_everything_on_canvas(
                 "title": obj.get("title"),
                 "mimeType": obj.get("mimeType"),
                 "size": obj.get("size"),
+                "hasDataUrl": bool(obj.get("dataUrl")),
             }
             for obj in file_objects
         ],
+        "processed_files": processed_files,
         "webpages": [
             {
                 "id": obj["id"],
@@ -338,6 +354,26 @@ def read_everything_on_canvas(
             if visual_context
             else None
         ),
+    }
+
+
+def _read_canvas_file(file_object: dict[str, Any]) -> dict[str, Any]:
+    processed = process_canvas_file(file_object)
+    image_data_url = processed.get("image_data_url")
+    text_content = processed.get("text_content")
+
+    return {
+        "id": file_object.get("id"),
+        "kind": file_object.get("kind"),
+        "title": processed["title"] or file_object.get("title") or file_object.get("id"),
+        "mime_type": processed["mime_type"] or file_object.get("mimeType"),
+        "size": file_object.get("size"),
+        "text_content": text_content,
+        "text_length": len(text_content) if text_content else 0,
+        "has_image_data_url": bool(image_data_url),
+        "image_data_url_length": len(image_data_url) if image_data_url else 0,
+        "metadata": processed["metadata"],
+        "error": processed["error"],
     }
 ```
 
@@ -545,6 +581,7 @@ from canvas_protocol import (
     selected_objects,
     webpages,
 )
+from app.services.file_ingestion import process_canvas_file
 
 
 def run(
@@ -735,6 +772,7 @@ def read_everything_on_canvas(
     selected = selected_objects(canvas_state)
     file_objects = files(canvas_state)
     webpage_objects = webpages(canvas_state)
+    processed_files = [_read_canvas_file(obj) for obj in file_objects]
 
     return {
         "captured_at": canvas_state.get("capturedAt"),
@@ -754,6 +792,8 @@ def read_everything_on_canvas(
                 "title": obj.get("title"),
                 "url": obj.get("url"),
                 "mimeType": obj.get("mimeType"),
+                "size": obj.get("size"),
+                "hasDataUrl": bool(obj.get("dataUrl")),
                 "metadata": obj.get("metadata", {}),
             }
             for obj in objects
@@ -773,9 +813,11 @@ def read_everything_on_canvas(
                 "title": obj.get("title"),
                 "mimeType": obj.get("mimeType"),
                 "size": obj.get("size"),
+                "hasDataUrl": bool(obj.get("dataUrl")),
             }
             for obj in file_objects
         ],
+        "processed_files": processed_files,
         "webpages": [
             {
                 "id": obj["id"],
@@ -793,6 +835,26 @@ def read_everything_on_canvas(
             if visual_context
             else None
         ),
+    }
+
+
+def _read_canvas_file(file_object: dict[str, Any]) -> dict[str, Any]:
+    processed = process_canvas_file(file_object)
+    image_data_url = processed.get("image_data_url")
+    text_content = processed.get("text_content")
+
+    return {
+        "id": file_object.get("id"),
+        "kind": file_object.get("kind"),
+        "title": processed["title"] or file_object.get("title") or file_object.get("id"),
+        "mime_type": processed["mime_type"] or file_object.get("mimeType"),
+        "size": file_object.get("size"),
+        "text_content": text_content,
+        "text_length": len(text_content) if text_content else 0,
+        "has_image_data_url": bool(image_data_url),
+        "image_data_url_length": len(image_data_url) if image_data_url else 0,
+        "metadata": processed["metadata"],
+        "error": processed["error"],
     }
 
 
@@ -853,7 +915,7 @@ trailer
 1. Put all AI behavior inside `run(...)` in `ai-core/main.py`.
 2. Read the current canvas from `canvas_state["objects"]`.
 3. Read selected objects with `selected_objects(canvas_state)`.
-4. Read uploaded files/images/PDFs with `files(canvas_state)`.
+4. Read uploaded files/images/PDFs with `files(canvas_state)` and `process_canvas_file(obj)`.
 5. Read webpage embeds with `webpages(canvas_state)`.
 6. Read the screenshot with `visual_context["dataUrl"]` when `visual_context` is not `None`.
 7. Create outputs by appending actions to an `actions` list.
@@ -862,6 +924,8 @@ trailer
 10. If the code in `main.py` has a syntax error or raises an exception, Generate will fail and the backend terminal will show the error.
 
 The most important rule: `canvas_state`, `visual_context`, and `prompt` are only available inside `run(...)`. Do not use them in top-level code.
+
+Keep raw uploaded image data URLs and screenshot bytes out of text-only model prompts. Use extracted `text_content`, `has_image_data_url`, `image_data_url_length`, and `error` from `processed_files` for model-safe summaries.
 
 ## Modifying Objects
 
