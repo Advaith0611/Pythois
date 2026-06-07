@@ -1,11 +1,14 @@
 import os
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.api.routes import router
 
 app = FastAPI(title="Pythios Spatial AI API", version="0.1.0")
+DEPLOYMENTS_DIR = Path(__file__).resolve().parent / "deployments"
 
 default_origins = [
     "http://localhost:5173",
@@ -32,7 +35,14 @@ app.add_middleware(
 
 app.include_router(router)
 
+DEPLOYMENTS_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/apps", StaticFiles(directory=DEPLOYMENTS_DIR, html=True), name="pythios-apps")
+app.mount("/app", StaticFiles(directory=DEPLOYMENTS_DIR, html=True), name="pythios-apps-path")
+
 
 @app.get("/")
 async def root():
     return {"name": "Pythios Spatial AI API", "status": "ok"}
+
+
+app.mount("/", StaticFiles(directory=DEPLOYMENTS_DIR, html=True), name="pythios-root-apps")

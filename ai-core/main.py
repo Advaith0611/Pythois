@@ -73,7 +73,7 @@ def model(canvas_input: dict) -> str:
     prompt = f"""
 You are Pythios.
 
-Your job is to determine the user's intent.
+Your job is to understand everything visible on the canvas and produce a highly detailed implementation TODO list.
 
 You are given:
 
@@ -82,31 +82,90 @@ You are given:
 
 Use BOTH sources of information.
 
-The screenshot helps you understand layout, drawings, sketches, diagrams and visual meaning.
+The screenshot helps you understand:
+- Layout
+- Diagrams
+- Drawings
+- Wireframes
+- Visual relationships
+- Handwritten notes
+- UI mockups
 
-The structured canvas data helps you understand exact text, object metadata, files and webpages.
+The structured canvas data helps you understand:
+- Exact text
+- Object metadata
+- Files
+- Images
+- PDFs
+- Webpages
+- Embedded content
 
 Combine both sources.
 
-Return ONLY a concise description of what the user is trying to accomplish.
+Your task:
 
-Examples:
+1. Determine exactly what the user is trying to build, solve, design, plan, or create.
+2. Infer missing details when they are obvious from context.
+3. Break the work into concrete implementation tasks.
+4. Produce a prioritized TODO list.
+5. Include technical details whenever possible.
+6. Mention files, pages, diagrams, screenshots, PDFs, webpages, and notes that are relevant.
+7. If the canvas contains a problem that can be solved directly (math, programming, writing, analysis, etc.), include the solution.
+8. If the canvas describes software, generate software-development tasks.
+9. If the canvas describes a design, generate design tasks.
+10. If the canvas describes a business idea, generate business tasks.
 
-"Creating a landing page wireframe for a startup that works on book selling."
+Output format:
 
-"Brainstorming a machine learning architecture for a model that classify's images."
+PROJECT SUMMARY:
+<one concise paragraph>
 
-"Designing a dashboard for analytics for a clothing store."
+USER GOAL:
+<what the user is ultimately trying to accomplish>
 
-"Planning a software project for a whiteboard app."
+TODO LIST:
+
+[HIGH PRIORITY]
+- task
+- task
+- task
+
+[MEDIUM PRIORITY]
+- task
+- task
+- task
+
+[LOW PRIORITY]
+- task
+- task
+- task
+
+TECHNICAL NOTES:
+- note
+- note
+- note
+
+Be extremely specific.
+
+Bad example:
+- Build website
+
+Good example:
+- Create React page for product dashboard
+- Implement FastAPI endpoint for image upload
+- Store generated images in object storage
+- Add authentication middleware using JWT
+- Deploy generated application to pythios.xyz/apps/<generated-id>
 
 Do not explain your reasoning.
-Do not list canvas objects.
-Return only the user's likely intent.
-Be specific list all the information you can see 
+
+Do not describe canvas objects individually unless relevant.
+
+Focus on actionable work items.
+
 Canvas Data:
 
-{json.dumps(context)}
+{json.dumps(context, indent=2)}
 """
 
     contents = [prompt]
@@ -120,7 +179,7 @@ Canvas Data:
         )
 
     response = client.models.generate_content(
-        model="gemini-2.5-flash",
+        model="gemini-2.5-flash-lite",
         contents=contents,
         config=types.GenerateContentConfig(
             temperature=0.1,

@@ -58,6 +58,50 @@ function FileSummary({ object }: { object: EmbeddedCanvasObject }) {
   )
 }
 
+function decodeTextDataUrl(dataUrl: string) {
+  const [, payload = ''] = dataUrl.split(',', 2)
+  try {
+    return decodeURIComponent(escape(window.atob(payload)))
+  } catch {
+    try {
+      return decodeURIComponent(payload)
+    } catch {
+      return ''
+    }
+  }
+}
+
+function isTextPreview(object: EmbeddedCanvasObject) {
+  const mime = object.mimeType?.toLowerCase() ?? ''
+  const title = object.title.toLowerCase()
+  return (
+    Boolean(object.dataUrl) &&
+    (mime.startsWith('text/') ||
+      mime.includes('json') ||
+      mime.includes('javascript') ||
+      title.endsWith('.md') ||
+      title.endsWith('.markdown') ||
+      title.endsWith('.json') ||
+      title.endsWith('.js') ||
+      title.endsWith('.jsx') ||
+      title.endsWith('.ts') ||
+      title.endsWith('.tsx') ||
+      title.endsWith('.html') ||
+      title.endsWith('.css') ||
+      title.endsWith('.py'))
+  )
+}
+
+function TextFilePreview({ object }: { object: EmbeddedCanvasObject }) {
+  const text = useMemo(() => (object.dataUrl ? decodeTextDataUrl(object.dataUrl) : ''), [object.dataUrl])
+
+  return (
+    <div className="embedded-text-preview">
+      <pre>{text || 'No previewable text content.'}</pre>
+    </div>
+  )
+}
+
 function WebpageFrame({ object }: { object: EmbeddedCanvasObject }) {
   const [isLoading, setIsLoading] = useState(true)
   const [hasTimedOut, setHasTimedOut] = useState(false)
@@ -138,6 +182,10 @@ function EmbeddedContent({ object }: { object: EmbeddedCanvasObject }) {
 
   if (object.kind === 'webpage') {
     return <WebpageFrame object={object} />
+  }
+
+  if (isTextPreview(object)) {
+    return <TextFilePreview object={object} />
   }
 
   return <FileSummary object={object} />
