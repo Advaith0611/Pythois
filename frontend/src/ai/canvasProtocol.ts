@@ -146,6 +146,7 @@ export type CanvasCreateAction =
       points: Array<{ x: number; y: number }>
       color?: string
       fill?: string
+      strokeWidth?: number
       metadata?: Record<string, unknown>
     }
   | {

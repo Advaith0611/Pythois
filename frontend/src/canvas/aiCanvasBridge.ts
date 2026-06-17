@@ -1,4 +1,5 @@
 import {
+  b64Vecs,
   createShapeId,
   renderPlaintextFromRichText,
   toRichText,
@@ -185,6 +186,13 @@ function asShapePartial(shape: unknown) {
   return shape as ShapePartial
 }
 
+function drawSizeFromStrokeWidth(strokeWidth?: number) {
+  if (!strokeWidth || strokeWidth <= 3) return 's'
+  if (strokeWidth <= 6) return 'm'
+  if (strokeWidth <= 10) return 'l'
+  return 'xl'
+}
+
 function createEmbeddedObject(
   action: Extract<
     CanvasAction,
@@ -296,7 +304,38 @@ function createShapeFromAction(action: CanvasAction): ShapePartial | null {
     })
   }
 
-  if (action.action === 'create_freehand' || action.action === 'create_polygon') {
+  if (action.action === 'create_freehand') {
+    const first = action.points[0]
+    if (!first) return null
+    const localPoints = action.points.map((point) => ({
+      x: point.x - first.x,
+      y: point.y - first.y,
+      z: 0.5,
+    }))
+
+    return asShapePartial({
+      id: shapeId(action.id),
+      type: 'draw',
+      x: first.x,
+      y: first.y,
+      meta: action.metadata ?? {},
+      props: {
+        color: normalizeTldrawColor(action.color) ?? 'black',
+        fill: 'none',
+        dash: 'draw',
+        size: drawSizeFromStrokeWidth(action.strokeWidth),
+        segments: [{ type: 'free', path: b64Vecs.encodePoints(localPoints) }],
+        isComplete: true,
+        isClosed: false,
+        isPen: false,
+        scale: 1,
+        scaleX: 1,
+        scaleY: 1,
+      },
+    })
+  }
+
+  if (action.action === 'create_polygon') {
     const first = action.points[0]
     if (!first) return null
     const points = Object.fromEntries(
@@ -314,7 +353,7 @@ function createShapeFromAction(action: CanvasAction): ShapePartial | null {
       meta: action.metadata ?? {},
       props: {
         color: normalizeTldrawColor(action.color) ?? 'black',
-        spline: action.action === 'create_freehand' ? 'cubic' : 'line',
+        spline: 'line',
         points,
       },
     })

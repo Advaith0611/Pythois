@@ -350,6 +350,24 @@
   opacity: 0.7;
 }
 
+.prompt-input {
+  width: min(340px, 34vw);
+  min-width: 180px;
+  height: 36px;
+  border: 1px solid rgba(158, 176, 196, 0.24);
+  border-radius: 7px;
+  padding: 0 10px;
+  color: #f6f8fb;
+  background: rgba(255, 255, 255, 0.06);
+  outline: none;
+  font-size: 13px;
+}
+
+.prompt-input:focus {
+  border-color: rgba(85, 189, 157, 0.68);
+  box-shadow: 0 0 0 2px rgba(85, 189, 157, 0.16);
+}
+
 .web-embed-popover {
   position: absolute;
   top: calc(100% + 10px);
@@ -748,6 +766,11 @@
     left: 12px;
     transform: none;
     overflow-x: auto;
+  }
+
+  .prompt-input {
+    min-width: 220px;
+    width: 220px;
   }
 
   .canvas-toolbar .generate-button span,

@@ -222,6 +222,24 @@ def create_line(
     return _connector("create_line", x, y, end_x, end_y, color, None, metadata)
 
 
+def create_freehand(
+    *,
+    points: list[dict[str, float]],
+    color: str | None = None,
+    stroke_width: float | None = None,
+    metadata: dict[str, Any] | None = None,
+) -> CanvasAction:
+    return _without_none(
+        {
+            "action": "create_freehand",
+            "points": points,
+            "color": color,
+            "strokeWidth": stroke_width,
+            "metadata": metadata,
+        }
+    )
+
+
 def create_webpage(
     *,
     url: str,

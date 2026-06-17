@@ -175,6 +175,7 @@ class CreatePathAction(BaseModel):
     points: list[CanvasPoint]
     color: str | None = None
     fill: str | None = None
+    strokeWidth: float | None = None
     metadata: dict[str, Any] | None = None
 
 

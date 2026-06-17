@@ -71,6 +71,7 @@ function CanvasToolbarComponent({ editor }: CanvasToolbarProps) {
   const setGeneratedUI = useAppStore((state) => state.setGeneratedUI)
   const setIsGenerating = useAppStore((state) => state.setIsGenerating)
   const setLastShapeCount = useAppStore((state) => state.setLastShapeCount)
+  const setPrompt = useAppStore((state) => state.setPrompt)
   const setStatus = useAppStore((state) => state.setStatus)
 
   const getDropPoint = useCallback(() => {
@@ -142,13 +143,14 @@ function CanvasToolbarComponent({ editor }: CanvasToolbarProps) {
   const generate = useCallback(async () => {
     const shapes = getSerializableShapes(editor, selectedOnly)
     const canvasState = getCanvasState(editor)
+    const trimmedPrompt = prompt.trim()
     setLastShapeCount(shapes.length)
     setIsGenerating(true)
-    setStatus(shapes.length ? `Parsing ${shapes.length} canvas objects` : 'Generating starter interface')
+    setStatus(trimmedPrompt ? `Drawing: ${trimmedPrompt}` : 'Drawing from default prompt')
 
     try {
       const visualContext = await captureCanvasVisualContext(editor)
-      const response = await generateInterface({ shapes, canvasState, visualContext, prompt, selectedOnly })
+      const response = await generateInterface({ shapes, canvasState, visualContext, prompt: trimmedPrompt, selectedOnly })
       const actions = response.actionBatch.actions
       const result = applyCanvasActions(editor, actions)
       const appliedCount = result.results.filter((actionResult) => actionResult.ok).length
@@ -201,6 +203,20 @@ function CanvasToolbarComponent({ editor }: CanvasToolbarProps) {
       <button type="button" onClick={() => setIsWebDialogOpen(true)} title="Embed webpage">
         <Globe2 size={18} />
       </button>
+      <span className="toolbar-divider" />
+      <input
+        className="prompt-input"
+        value={prompt}
+        onChange={(event) => setPrompt(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' && !event.shiftKey && !isGenerating) {
+            event.preventDefault()
+            void generate()
+          }
+        }}
+        placeholder="Draw a tree, sun, flowchart..."
+        aria-label="Drawing prompt"
+      />
       <span className="toolbar-divider" />
       <button type="button" onClick={generate} className="generate-button" disabled={isGenerating} title="Generate interface">
         {isGenerating ? <Braces size={18} /> : <Sparkles size={18} />}
