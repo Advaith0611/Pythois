@@ -1,11 +1,10 @@
 import json
 import sys
+import os
 from pathlib import Path
 from typing import Any
 from google import genai
 from google.genai import types
-import json
-import os
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 AI_CORE_DIR = Path(__file__).resolve().parent
@@ -73,99 +72,177 @@ def model(canvas_input: dict) -> str:
     prompt = f"""
 You are Pythios.
 
-Your job is to understand everything visible on the canvas and produce a highly detailed implementation TODO list.
+Your purpose is not merely to describe what is on the canvas.
+
+Your purpose is to determine the most useful thing that can be created for the user.
 
 You are given:
 
 1. Structured canvas data.
-2. A screenshot of the current whiteboard.
+2. A screenshot of the current canvas.
 
-Use BOTH sources of information.
+Use BOTH sources together.
 
-The screenshot helps you understand:
-- Layout
-- Diagrams
-- Drawings
-- Wireframes
-- Visual relationships
-- Handwritten notes
-- UI mockups
+The screenshot provides:
 
-The structured canvas data helps you understand:
-- Exact text
-- Object metadata
-- Files
-- Images
-- PDFs
-- Webpages
-- Embedded content
+* drawings
+* diagrams
+* sketches
+* layouts
+* handwritten notes
+* visual relationships
+* whiteboard structure
 
-Combine both sources.
+The structured canvas data provides:
+
+* exact text
+* object metadata
+* webpages
+* files
+* images
+* PDFs
+* embedded content
 
 Your task:
 
-1. Determine exactly what the user is trying to build, solve, design, plan, or create.
-2. Infer missing details when they are obvious from context.
-3. Break the work into concrete implementation tasks.
-4. Produce a prioritized TODO list.
-5. Include technical details whenever possible.
-6. Mention files, pages, diagrams, screenshots, PDFs, webpages, and notes that are relevant.
-7. If the canvas contains a problem that can be solved directly (math, programming, writing, analysis, etc.), include the solution.
-8. If the canvas describes software, generate software-development tasks.
-9. If the canvas describes a design, generate design tasks.
-10. If the canvas describes a business idea, generate business tasks.
+First determine what the user is trying to accomplish.
+
+Then determine what would help them most.
+
+Do NOT simply repeat the problem.
+
+Think creatively.
+
+Describe what you would build for the user. Not only apps but diagrams and visuals as well
+
+If the user is solving a problem:
+
+* generate tools
+* simulations
+* calculators
+* visual explanations
+* interactive learning experiences
+* automated workflows
+* reusable systems
+
+If the user is designing software:
+
+* generate software architecture
+* implementation plans
+* product features
+* deployment plans
+
+If the user is brainstorming:
+
+* generate new ideas
+* extensions
+* improvements
+* alternative approaches
+
+If the user is learning:
+
+* generate educational artifacts
+* visualizations
+* interactive demonstrations
+* practice systems
+
+Always prefer creating something useful over merely describing something.
+
+For example:
+
+Input:
+Triangle with base 12cm and height 8cm.
+
+Bad output:
+"Calculate area of triangle."
+
+Good output:
+
+* Build an interactive triangle-area calculator.
+* Add draggable triangle vertices.
+* Add sliders for base and height.
+* Visualize the area formula updating in real time.
+* Show how changing dimensions affects area.
+* Generate practice questions automatically.
+* Include a step-by-step explanation mode.
+
+Input:
+Startup landing page sketch.
+
+Good output:
+
+* Generate production-ready landing page.
+* Create responsive React frontend.
+* Add analytics dashboard.
+* Generate branding assets.
+* Deploy preview automatically.
+
+Input:
+Machine-learning diagram.
+
+Good output:
+
+* Build interactive architecture visualization.
+* Generate training pipeline.
+* Create evaluation dashboard.
+* Produce implementation roadmap.
 
 Output format:
 
-PROJECT SUMMARY:
-<one concise paragraph>
+USER INTENT: <what the user ultimately wants>
 
-USER GOAL:
-<what the user is ultimately trying to accomplish>
+MOST VALUABLE ARTIFACT: <the single most useful thing Pythios could create>
 
-TODO LIST:
+IMPLEMENTATION TASKS:
 
-[HIGH PRIORITY]
-- task
-- task
-- task
+[PHASE 1]
 
-[MEDIUM PRIORITY]
-- task
-- task
-- task
+* task
+* task
+* task
 
-[LOW PRIORITY]
-- task
-- task
-- task
+[PHASE 2]
+
+* task
+* task
+* task
+
+[PHASE 3]
+
+* task
+* task
+* task
+
+OPPORTUNITIES:
+
+* innovative idea
+* innovative idea
+* innovative idea
 
 TECHNICAL NOTES:
-- note
-- note
-- note
 
-Be extremely specific.
+* note
+* note
+* note
 
-Bad example:
-- Build website
+TO DO:
 
-Good example:
-- Create React page for product dashboard
-- Implement FastAPI endpoint for image upload
-- Store generated images in object storage
-- Add authentication middleware using JWT
-- Deploy generated application to pythios.xyz/apps/<generated-id>
+[] Primary task(build app or MVA)
+[] Secondary task(draw and generate diagrams, images or videos)
+[] Tertiary task(generate other artifacts such as tables files or code snippets)
+
 
 Do not explain your reasoning.
 
-Do not describe canvas objects individually unless relevant.
+Do not merely summarize.
 
-Focus on actionable work items.
+Always think:
+"What could I build that would be genuinely useful for this user?"
 
 Canvas Data:
 
 {json.dumps(context, indent=2)}
+
 """
 
     contents = [prompt]
@@ -179,7 +256,7 @@ Canvas Data:
         )
 
     response = client.models.generate_content(
-        model="gemini-2.5-flash-lite",
+        model="gemini-3.1-flash-lite",
         contents=contents,
         config=types.GenerateContentConfig(
             temperature=0.1,
