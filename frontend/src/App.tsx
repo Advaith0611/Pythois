@@ -10,7 +10,17 @@ export default function App() {
 
   return (
     <main className={`app-shell${isSidebarCollapsed ? ' sidebar-collapsed' : ''}`}>
-      <Toaster position="top-center" toastOptions={{ style: { background: '#101318', color: '#f5f7fb' } }} />
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          style: {
+            background: '#17120e',
+            color: '#f1e6d4',
+            border: '1px solid #3a2a1d',
+            fontFamily: "'DM Sans', sans-serif",
+          },
+        }}
+      />
       <CanvasWorkspace />
       <GeneratedRenderer />
     </main>

@@ -19,6 +19,6 @@ export async function generateInterface(request: GenerationRequest): Promise<Gen
     const response = await axios.post<GenerationResponse>(`${API_URL}/generate`, request, { timeout: GENERATE_TIMEOUT_MS })
     return response.data
   } catch (error) {
-    throw new Error(generationErrorMessage(error))
+    throw new Error(generationErrorMessage(error), { cause: error })
   }
 }

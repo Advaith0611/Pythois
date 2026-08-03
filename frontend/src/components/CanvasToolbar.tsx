@@ -173,10 +173,10 @@ function CanvasToolbarComponent({ editor }: CanvasToolbarProps) {
 
   return (
     <div className="canvas-toolbar" aria-label="Spatial tools">
-      <div className="toolbar-brand">
+      <a className="toolbar-brand" href="https://pythios.xyz" aria-label="Back to Pythios home" title="Back to pythios.xyz">
         <img src="/logo.png" alt="Pythios" />
         <span>Pythios</span>
-      </div>
+      </a>
       <span className="toolbar-divider" />
       <input
         ref={fileInputRef}

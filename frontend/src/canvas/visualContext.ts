@@ -24,19 +24,20 @@ function objectIntersectsViewport(object: EmbeddedCanvasObject, bounds: CanvasBo
 }
 
 function drawEmbeddedFallback(ctx: CanvasRenderingContext2D, object: EmbeddedCanvasObject, x: number, y: number, w: number, h: number) {
-  ctx.fillStyle = object.kind === 'webpage' ? '#eef6ff' : '#f7f8fb'
-  ctx.strokeStyle = object.kind === 'webpage' ? '#3182ce' : '#7a8797'
+  ctx.fillStyle = object.kind === 'webpage' ? '#17120e' : '#15100c'
+  ctx.strokeStyle = object.kind === 'webpage' ? '#d6a24c' : '#3a2a1d'
   ctx.lineWidth = 2
   ctx.beginPath()
   ctx.roundRect(x, y, w, h, 8)
   ctx.fill()
   ctx.stroke()
 
-  ctx.fillStyle = '#111820'
-  ctx.font = '700 14px sans-serif'
+  ctx.fillStyle = '#f1e6d4'
+  ctx.font = '500 14px "DM Mono", monospace'
   ctx.fillText(object.kind.toUpperCase(), x + 14, y + 28)
 
-  ctx.font = '13px sans-serif'
+  ctx.fillStyle = '#ad9c88'
+  ctx.font = '400 13px "DM Sans", sans-serif'
   const label = object.url ?? object.title
   ctx.fillText(label.slice(0, 72), x + 14, y + 52)
 }
@@ -56,7 +57,7 @@ async function drawEmbeddedObject(
     try {
       const image = await loadImage(object.dataUrl)
       ctx.drawImage(image, x, y, w, h)
-      ctx.strokeStyle = '#7a8797'
+      ctx.strokeStyle = '#3a2a1d'
       ctx.lineWidth = 1
       ctx.strokeRect(x, y, w, h)
       return
@@ -75,7 +76,7 @@ function createBlankDataUrl(width: number, height: number) {
   canvas.height = height
   const ctx = canvas.getContext('2d')
   if (ctx) {
-    ctx.fillStyle = '#ffffff'
+    ctx.fillStyle = '#0d0b09'
     ctx.fillRect(0, 0, width, height)
   }
   return canvas.toDataURL('image/png')
@@ -127,7 +128,7 @@ export async function captureCanvasVisualContext(editor: Editor): Promise<Canvas
     }
   }
 
-  ctx.fillStyle = '#ffffff'
+  ctx.fillStyle = '#0d0b09'
   ctx.fillRect(0, 0, width, height)
 
   try {
