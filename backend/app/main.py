@@ -17,17 +17,27 @@ default_origins = [
     "http://127.0.0.1:4173",
     "https://pythios.xyz",
     "https://www.pythios.xyz",
+    "https://app.pythios.xyz",
+    "https://delphi.pythios.xyz",
 ]
 
 extra_origins = [
-    origin.strip()
+    origin.strip().rstrip("/")
     for origin in os.getenv("ALLOWED_ORIGINS", "").split(",")
     if origin.strip()
 ]
 
+# Keep the normal production domains working if the frontend is served from a
+# subdomain, while still requiring HTTPS and the project's own domain.
+origin_regex = os.getenv(
+    "ALLOWED_ORIGIN_REGEX",
+    r"https://([a-z0-9-]+\.)*pythios\.xyz",
+)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[*default_origins, *extra_origins],
+    allow_origin_regex=origin_regex,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
